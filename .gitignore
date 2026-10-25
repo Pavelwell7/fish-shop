@@ -1,0 +1,21 @@
+# Секреты
+.env
+*.env
+.venv
+
+# Редакторы
+.idea/
+.vscode/
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.ruff_cache/
+
+# Node
+node_modules/
