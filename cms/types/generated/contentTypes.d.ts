@@ -443,6 +443,96 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCartItemCartItem extends Struct.CollectionTypeSchema {
+  collectionName: 'cart_items';
+  info: {
+    displayName: 'CartItem';
+    pluralName: 'cart-items';
+    singularName: 'cart-item';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    cart: Schema.Attribute.Relation<'manyToOne', 'api::cart.cart'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::cart-item.cart-item'
+    > &
+      Schema.Attribute.Private;
+    product: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
+    publishedAt: Schema.Attribute.DateTime;
+    quantity: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiCartCart extends Struct.CollectionTypeSchema {
+  collectionName: 'carts';
+  info: {
+    displayName: 'Cart';
+    pluralName: 'carts';
+    singularName: 'cart';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    cart_items: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::cart-item.cart-item'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::cart.cart'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    tg_id: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiClientClient extends Struct.CollectionTypeSchema {
+  collectionName: 'clients';
+  info: {
+    displayName: 'Client';
+    pluralName: 'clients';
+    singularName: 'client';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::client.client'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    tg_id: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   collectionName: 'products';
   info: {
@@ -988,6 +1078,9 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::cart-item.cart-item': ApiCartItemCartItem;
+      'api::cart.cart': ApiCartCart;
+      'api::client.client': ApiClientClient;
       'api::product.product': ApiProductProduct;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
