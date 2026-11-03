@@ -13,11 +13,9 @@ Telegram-бот для заказа морепродуктов.
 
 Менеджер видит клиентов и корзины в админке Strapi.
 
-## Стек и зависимости
+## Зависимости
 
-Проект состоит из двух независимых частей: `cms/` (Strapi) и `bot/` (Telegram-бот).
-
-**Бот (Python 3.11, управление через [uv](https://docs.astral.sh/uv/))**
+Python 3.11, управление через [uv](https://docs.astral.sh/uv/).
 
 | Пакет | Для чего |
 |---|---|
@@ -28,31 +26,45 @@ Telegram-бот для заказа морепродуктов.
 | `setuptools<81` | Нужен планировщику внутри `python-telegram-bot` 13.15 |
 | `ruff` (dev) | Линтер и форматтер кода |
 
-**Сервисы**
+## Внешние сервисы
+
+Бот не содержит код этих сервисов, ему нужен только доступ к ним.
 
 | Сервис | Для чего |
 |---|---|
-| [Strapi 5](https://strapi.io/) (Node.js, SQLite) | CMS: товары, корзины, клиенты, REST API |
+| [Strapi 5](https://strapi.io/) | CMS: товары, корзины, клиенты. Может быть запущен локально или на удалённом сервере |
 | Redis | Хранение текущего состояния каждого пользователя в диалоге |
+
+### Что должно быть в Strapi
+
+| Коллекция | Поля |
+|---|---|
+| `Product` | `title` (Text), `description` (Text), `price` (Number), `picture` (Media). Товары должны быть опубликованы |
+| `CartItem` | `quantity` (Number, decimal), `product` (Relation с `Product`) |
+| `Cart` | `tg_id` (Text, Unique), `cart_items` (Relation с `CartItem`) |
+| `Client` | `tg_id` (Text, Unique), `email` (Email) |
+
+Для `Cart`, `CartItem` и `Client` отключён Draft & publish. Боту нужен API-токен (**Settings → API Tokens**, тип `Full access`).
 
 ## Что потребуется
 
 - Linux, macOS или Windows с WSL (Ubuntu)
-- [Node.js](https://nodejs.org/) LTS (удобно ставить через [nvm](https://github.com/nvm-sh/nvm))
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python 3.11 он скачает сам)
-- Redis
+- Запущенный Redis
+- Доступный Strapi с API-токеном
 - Токен Telegram-бота от [@BotFather](https://t.me/BotFather)
 
 ## Установка
 
-### 1. Клонирование
+Клонирование и установка зависимостей:
 
 ```bash
 git clone git@github.com:Pavelwell7/fish-shop.git
 cd fish-shop
+uv sync
 ```
 
-### 2. Redis
+Redis (если ещё не установлен):
 
 ```bash
 sudo apt update
@@ -63,68 +75,30 @@ redis-cli ping    # должно ответить PONG
 
 Если в WSL нет systemd: `sudo service redis-server start`.
 
-### 3. Strapi
+## Настройка
+
+Скопируйте пример и заполните значения:
 
 ```bash
-cd cms
 cp .env.example .env
-npm install
 ```
 
-В `cms/.env` замените заглушки на случайные значения (для `APP_KEYS` нужно четыре ключа через запятую). Случайную строку можно получить так:
+| Переменная | Значение |
+|---|---|
+| `TG_BOT_TOKEN` | Токен бота от @BotFather |
+| `STRAPI_URL` | Адрес Strapi, например `http://localhost:1337` |
+| `STRAPI_TOKEN` | API-токен из админки Strapi |
+| `REDIS_HOST` | Хост Redis, по умолчанию `localhost` |
+| `REDIS_PORT` | Порт Redis, по умолчанию `6379` |
+| `REDIS_PASSWORD` | Пароль Redis, если он задан (необязательно) |
 
-```bash
-openssl rand -base64 16
-```
-
-Запустите Strapi в режиме разработки:
-
-```bash
-npm run develop
-```
-
-Админка откроется на `http://localhost:1337/admin`. При первом входе создайте администратора.
-
-Описание коллекций хранится в репозитории и подхватится само. База данных в git не попадает, поэтому товары нужно завести заново: **Content Manager → Product**, заполнить данные и нажать **Publish**, иначе API их не вернёт.
-
-### 4. API-токен Strapi
-
-**Settings → API Tokens → Create new API Token**: имя `bot`, срок `Unlimited`, тип `Full access`. Токен показывается один раз, скопируйте его сразу.
-
-### 5. Бот
-
-```bash
-cd bot
-uv sync
-```
-
-Создайте файл `bot/.env`:
-
-```
-TG_BOT_TOKEN=токен_от_BotFather
-STRAPI_URL=http://localhost:1337
-STRAPI_TOKEN=токен_из_админки_Strapi
-REDIS_HOST=localhost
-REDIS_PORT=6379
-```
-
-`REDIS_PASSWORD` необязателен, нужен только для защищённого Redis. Файл `.env` содержит секреты и не должен попадать в git.
+Файл `.env` содержит секреты и не попадает в git.
 
 ## Запуск
 
-Нужны два терминала, Redis должен быть запущен.
-
-**Терминал 1: Strapi**
+Убедитесь, что Redis и Strapi запущены, затем:
 
 ```bash
-cd cms
-npm run develop
-```
-
-**Терминал 2: бот**
-
-```bash
-cd bot
 uv run python src/bot/main.py
 ```
 
@@ -135,7 +109,6 @@ uv run python src/bot/main.py
 Форматирование и проверка кода:
 
 ```bash
-cd bot
 uv run ruff format .
 uv run ruff check --fix .
 ```
